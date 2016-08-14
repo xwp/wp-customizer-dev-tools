@@ -1,0 +1,21 @@
+{
+  "name": "customizer-dev-tools",
+  "version": "0.1.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xwp/customizer-dev-tools.git"
+  },
+  "author": "XWP",
+  "license": "GPL-2.0",
+  "bugs": {
+    "url": "https://github.com/xwp/customizer-dev-tools/issues"
+  },
+  "homepage": "https://github.com/xwp/customizer-dev-tools#readme",
+  "devDependencies": {
+    "eslint": "^3.3.0"
+  }
+}
