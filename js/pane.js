@@ -1,9 +1,10 @@
-/* global wp, jQuery, console, CustomizerDevTools */
-( function( component, api, $ ) {
+/* global wp, console, CustomizerDevTools */
+( function( component, api ) {
 	'use strict';
 
 	api.bind( 'ready', function() {
 		component.capturePreviewObjects();
+		component.watchState( api.state );
 	} );
 
 	/**
@@ -28,6 +29,54 @@
 		if ( api.previewer.targetWindow.get() ) {
 			onWindowChange( api.previewer.targetWindow.get() );
 		}
+	};
+
+	/**
+	 * Watch state.
+	 *
+	 * @param {wp.customize.Values} state State.
+	 * @param {function} state.each Iterator method.
+	 * @param {function} state.has Add method.
+	 * @param {function} state.add Add method.
+	 * @returns {void}
+	 */
+	component.watchState = function watchState( state ) {
+		var originalAdd = state.add;
+
+		// Watch existing state values.
+		state.each( function( stateValue, id ) {
+			component.watchStateValue( id, stateValue );
+		} );
+
+		/**
+		 * Wrap the state.add method since the state ID is not exposed in the add event.
+		 *
+		 * @param {string} id State ID.
+		 * @param {wp.customize.Value} stateValue Value.
+		 * @param {function} stateValue.get Getter.
+		 * @returns {void}
+		 */
+		state.add = function addState( id, stateValue ) {
+			if ( ! state.has( id ) ) {
+				console.log( '[customizer.%s.state.add]', component.context, id, stateValue.get() );
+				component.watchStateValue( id, stateValue );
+			}
+			originalAdd.call( this, id, stateValue );
+		};
+	};
+
+	/**
+	 * Watch state value.
+	 *
+	 * @param {string} id State ID.
+	 * @param {wp.customize.Value} stateValue State value.
+	 * @param {function} stateValue.bind Change watch adder.
+	 * @returns {void}
+	 */
+	component.watchStateValue = function watchStateValue( id, stateValue ) {
+		stateValue.bind( function( newState, oldState ) {
+			console.log( '[customizer.%s.state.change]', component.context, id, oldState, '=>', newState );
+		} );
 	};
 
 	component.wrapValuesMethods({
@@ -66,4 +115,4 @@
 
 	api.bind( 'add', component.addSettingChangeListener );
 
-} )( CustomizerDevTools, wp.customize, jQuery );
+} )( CustomizerDevTools, wp.customize );

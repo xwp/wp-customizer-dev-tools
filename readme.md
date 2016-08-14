@@ -10,11 +10,14 @@ Tools for facilitating JavaScript development in the customizer.
 **Stable tag:** 0.7.0  
 **License:** [GPLv2 or later](http://www.gnu.org/licenses/gpl-2.0.html)  
 
+[![Build Status](https://travis-ci.org/xwp/customizer-dev-tools.svg?branch=master)](https://travis-ci.org/xwp/customizer-dev-tools) 
+
 ## Description ##
 
 Features:
 
 * Logs out all events triggered on `wp.customize`.
+* Logs out additions and changes to to `wp.customize.state`.
 * Logs out messages sent and received by the pane (controls) and preview.
 * Logs out dynamic addition and removal of panels, sections, controls, partials, and settings (after the `ready` event triggers).
 * The `wp.customize` object from the Customizer preview is made persistently available from the parent frame via `CustomizerDevTools.previewCustomize`. This reference is updated whenever the preview refreshes, so you no longer have to change the frame window context to access this object.
