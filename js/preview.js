@@ -2,21 +2,29 @@
 ( function( component, api ) {
 	'use strict';
 
-	api.bind( 'add', component.handleAddition );
-	api.selectiveRefresh.partial.bind( 'add', component.handleAddition );
+	component.wrapValuesMethods({
+		object: api,
+		name: 'setting',
+		ignoreUntilReady: true
+	});
+	component.wrapValuesMethods({
+		object: api.selectiveRefresh.partial,
+		name: 'partial',
+		ignoreUntilReady: true
+	});
 
-	component.wrapFunction( {
-		prototype: api.Preview.prototype,
-		objectType: 'messenger.preview',
-		methodName: 'trigger',
-		methodDisplayName: 'receive'
-	} );
+	component.wrapTriggerMethod({
+		object: api,
+		name: 'events',
+		filter: function( id ) {
+			return ! ( 'add' === id || 'change' === id || 'remove' === id );
+		}
+	});
 
-	component.wrapFunction( {
-		prototype: api.Preview.prototype,
-		objectType: 'messenger.preview',
-		methodName: 'send'
-	} );
+	component.wrapMessengerMethods({
+		object: api.Preview.prototype,
+		name: 'messenger.preview'
+	});
 
 	// @todo Add inspection of selective refresh events.
 

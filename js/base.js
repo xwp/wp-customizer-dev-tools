@@ -4,64 +4,15 @@
 var CustomizerDevTools = ( function( api, $ ) {
 	'use strict';
 
+	// @todo DONE. Wrap the Values.add and Values.remove methods for panels, sections, controls, settings, partials.
+	// @todo DONE. Wrap the send and receive (trigger) methods on Previewer and Preview.
+	// @todo DONE. Wrap the trigger method on wp.customize.
+	// @todo Wrap the active and expanded states on panels, sections, and controls.
+	// @todo Wrap the set method on settings, or add change event.
+
 	var component = {
 		ready: false,
-		originalTriggers: {
-			mixin: api.Events.trigger,
-			values: api.Values.prototype.trigger,
-			messenger: api.Messenger.prototype.trigger
-		},
-		originalMessengerSend: api.Messenger.prototype.send,
-		originalMessengerReceive: api.Messenger.prototype.receive,
 		context: 'unknown'
-	};
-
-	/**
-	 *
-	 * @this {wp.customize.Class}
-	 * @param {object} args
-	 * @param {object} args.prototype
-	 * @param {object} args.objectType
-	 * @param {string} args.methodName
-	 * @param {function} [args.filter]
-	 * @param {function} [args.beforeTrigger]
-	 * @param {string} [args.methodDisplayName]
-	 */
-	component.wrapFunction = function wrapFunction( args ) {
-		var originalMethod = args.prototype[ args.methodName ];
-		args.prototype[ args.methodName ] = function wrappedLog() {
-			var scope = [ 'customizer', component.context ], params, consoleArgs = [];
-
-			params = Array.prototype.slice.call( arguments );
-
-			// Allow short-circuiting if not relevant.
-			if ( args.filter && ! args.filter.apply( this, params ) ) {
-				return originalMethod.apply( this, arguments );
-			}
-
-			// Allow custom logic to be run before triggering.
-			if ( args.beforeTrigger ) {
-				args.beforeTrigger.apply( this, params );
-			}
-
-			scope.push( args.objectType );
-			scope.push( args.methodDisplayName || args.methodName );
-
-			consoleArgs.push( '[' + scope.join( '.' ) + ']' );
-			consoleArgs.push( params[0] );
-
-			if ( params[1] && 'function' === typeof params[1].extended && params[1].extended( api.Class ) ) {
-				if ( 'string' === typeof params[1].id ) {
-					consoleArgs.push( params[1].id );
-				} else if ( params[1].extended( api.Value ) ) {
-					consoleArgs.push( params[1]._value );
-				}
-			}
-			consoleArgs.push( params.slice( 1 ) );
-
-			console.log.apply( console, consoleArgs );
-			return originalMethod.apply( this, arguments );
-		};
 	};
 
 	api.bind( 'ready', function() {
@@ -69,52 +20,168 @@ var CustomizerDevTools = ( function( api, $ ) {
 	} );
 
 	/**
-	 * Handle setting addition.
+	 * Wrap the add and remove methods.
 	 *
-	 * @param {wp.customize.Panel|wp.customize.Section|wp.customize.Control|wp.customize.Setting|wp.customize.Value} object Object..
+	 * @this {wp.customize.Values}
+	 * @param {object} args
+	 * @param {wp.customize.Values} args.object
+	 * @param {string} args.name
+	 * @param {boolean} args.ignoreUntilReady
 	 */
-	component.handleAddition = function handleAddition( object ) {
-		var type, constructors, objectConstructorType = 'default';
-		if ( object.extended( api.Panel ) ) {
-			type = 'panel';
-		} else if ( object.extended( api.Section ) ) {
-			type = 'section';
-		} else if ( object.extended( api.Control ) ) {
-			type = 'control';
-		} else if ( api.selectiveRefresh && object.extended( api.selectiveRefresh.Partial ) ) {
-			type = 'partial';
-		} else {
-			type = 'setting';
-		}
-		if ( 'string' !== typeof object.id ) {
-			throw new Error( 'Object must have an id.' );
-		}
-		if ( 'partial' === type ) {
-			constructors = api.selectiveRefresh.partialConstructor;
-		} else {
-			constructors = api[ type + 'Constructor' ];
-		}
+	component.wrapValuesMethods = function wrapValuesObjectMethod( args ) {
+		var originalMethods;
 
-		_.find( constructors, function( constructor, key ) {
-			if ( object.extended( constructor ) ) {
-				objectConstructorType = key;
-				return true;
-			} else {
-				return false;
-			}
+		originalMethods = {
+			add: args.object.add,
+			remove: args.object.remove
+		};
+
+		_.each( originalMethods, function( method, methodName ) {
+			args.object[ methodName ] = function() {
+				var params, namespace, id, item, consoleArgs = [];
+
+				// Remove a lot of noise for addition of initial values.
+				if ( ! component.ready && args.ignoreUntilReady ) {
+					return method.apply( this, arguments );
+				}
+
+				params = Array.prototype.slice.call( arguments );
+				id = params[0];
+				item = params[1];
+				namespace = [ 'customizer', component.context, args.name, methodName ];
+				consoleArgs.push( {
+					'format': '[%s]',
+					'value': namespace.join( '.' )
+				} );
+				consoleArgs.push( {
+					'format': '%s',
+					'value': id
+				} );
+				if ( 'add' === methodName ) {
+					consoleArgs.push( {
+						'format': '%O',
+						'value': item
+					} );
+				}
+				console.log.apply(
+					console,
+					[
+						_.pluck( consoleArgs, 'format' ).join( ' ' )
+					].concat(
+						_.pluck( consoleArgs, 'value' )
+					)
+				);
+				return method.apply( this, arguments );
+			};
 		} );
+	};
 
-		if ( 'setting' === type ) {
-			component.addSettingChangeListener( object );
-		}
-
-		if ( component.ready ) {
-			if ( 'setting' === type ) {
-				console.log( '[customizer.%s.setting.%s.add] %s %O', component.context, objectConstructorType, object.id, object.get() );
-			} else {
-				console.log( '[customizer.%s.%s.%s.add] %s %O', component.context, type, objectConstructorType, object.id, object );
+	/**
+	 * Wrap trigger method.
+	 *
+	 * @param {object} args
+	 * @param {object} args.object
+	 * @param {string} [args.name]
+	 * @param {function} [args.filter]
+	 */
+	component.wrapTriggerMethod = function wrapTriggerMethod( args ) {
+		var originalTrigger = args.object.trigger;
+		args.object.trigger = function trigger() {
+			var consoleArgs = [], id, params, namespace = [ 'customizer', component.context ];
+			if ( args.filter && ! args.filter.apply( this, arguments ) ) {
+				return originalTrigger.apply( this, arguments );
 			}
-		}
+			if ( args.name ) {
+				namespace.push( args.name );
+			}
+			namespace.push( 'trigger' );
+
+			consoleArgs.push( {
+				'format': '[%s]',
+				'value': namespace.join( '.' )
+			} );
+
+			params = Array.prototype.slice.call( arguments );
+			id = params[0];
+
+			consoleArgs.push( {
+				'format': '%s',
+				'value': id
+			} );
+			if ( params.length > 1 ) {
+				consoleArgs.push( {
+					'format': '%O',
+					'value': params.slice( 1 )
+				} );
+			}
+
+			console.log.apply(
+				console,
+				[
+					_.pluck( consoleArgs, 'format' ).join( ' ' )
+				].concat(
+					_.pluck( consoleArgs, 'value' )
+				)
+			);
+
+			return originalTrigger.apply( this, arguments );
+		};
+	};
+
+	/**
+	 * Wrap messenger methods.
+	 * @param {object} args
+	 * @param {wp.customize.Messenger} args.object
+	 * @param {string} args.name
+	 * @param {function} [args.filter]
+	 */
+	component.wrapMessengerMethods = function wrapMessengerMethods( args ) {
+
+		var originalMethods;
+
+		originalMethods = {
+			send: {
+				method: args.object.send
+			},
+			trigger: {
+				method: args.object.trigger,
+				name: 'receive'
+			}
+		};
+
+		_.each( originalMethods, function( methodParams, methodName ) {
+			args.object[ methodName ] = function() {
+				var params, namespace, id, item, consoleArgs = [];
+
+				params = Array.prototype.slice.call( arguments );
+				id = params[0];
+				namespace = [ 'customizer', component.context, args.name ];
+				namespace.push( methodParams.name || methodName );
+				consoleArgs.push( {
+					'format': '[%s]',
+					'value': namespace.join( '.' )
+				} );
+				consoleArgs.push( {
+					'format': '%s',
+					'value': id
+				} );
+				if ( params.length > 1 ) {
+					consoleArgs.push( {
+						'format': '%O',
+						'value': params.slice( 1 )
+					} );
+				}
+				console.log.apply(
+					console,
+					[
+						_.pluck( consoleArgs, 'format' ).join( ' ' )
+					].concat(
+						_.pluck( consoleArgs, 'value' )
+					)
+				);
+				return methodParams.method.apply( this, arguments );
+			};
+		} );
 	};
 
 	/**

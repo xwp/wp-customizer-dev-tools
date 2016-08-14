@@ -2,6 +2,10 @@
 ( function( component, api, $ ) {
 	'use strict';
 
+	api.bind( 'ready', function() {
+		component.capturePreviewObjects();
+	} );
+
 	/**
 	 * Expose Customizer preview window and wp.customize object persistently, even as iframe window is destroyed with each refresh.
 	 *
@@ -26,26 +30,40 @@
 		}
 	};
 
-	component.wrapFunction( {
-		prototype: api.Previewer.prototype,
-		objectType: 'messenger.previewer',
-		methodName: 'trigger',
-		methodDisplayName: 'receive'
-	} );
+	component.wrapValuesMethods({
+		object: api,
+		name: 'setting',
+		ignoreUntilReady: true
+	});
+	component.wrapValuesMethods({
+		object: api.panel,
+		name: 'panel',
+		ignoreUntilReady: true
+	});
+	component.wrapValuesMethods({
+		object: api.section,
+		name: 'section',
+		ignoreUntilReady: true
+	});
+	component.wrapValuesMethods({
+		object: api.control,
+		name: 'control',
+		ignoreUntilReady: true
+	});
 
-	component.wrapFunction( {
-		prototype: api.Previewer.prototype,
-		objectType: 'messenger.previewer',
-		methodName: 'send'
-	} );
+	component.wrapTriggerMethod({
+		object: api,
+		name: 'events',
+		filter: function( id ) {
+			return ! ( 'add' === id || 'change' === id || 'remove' === id );
+		}
+	});
 
-	api.bind( 'ready', function() {
-		component.capturePreviewObjects();
-	} );
+	component.wrapMessengerMethods({
+		object: api.Previewer.prototype,
+		name: 'messenger.previewer'
+	});
 
-	api.bind( 'add', component.handleAddition );
-	api.panel.bind( 'add', component.handleAddition );
-	api.section.bind( 'add', component.handleAddition );
-	api.control.bind( 'add', component.handleAddition );
+	api.bind( 'add', component.addSettingChangeListener );
 
 } )( CustomizerDevTools, wp.customize, jQuery );
