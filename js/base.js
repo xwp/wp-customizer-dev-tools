@@ -15,6 +15,30 @@ var CustomizerDevTools = ( function( api, $ ) {
 	} );
 
 	/**
+	 * Log.
+	 *
+	 * @param {object} args Args.
+	 * @param {Array} args.namespace Namespace parts.
+	 * @param {Array} args.params Params.
+	 * @return {void}
+	 */
+	component.log = function log( args ) {
+		var namespace, consoleArgs;
+		namespace = [ 'customizer', component.context ].concat( args.namespace );
+		consoleArgs = [];
+		consoleArgs.push( '[' + namespace.join( '.' ) + ']' );
+		_.each( args.params, function( param ) {
+			consoleArgs[0] += ' ' + ( param.format || '%s' );
+			if ( param.values ) {
+				consoleArgs = consoleArgs.concat( param.values );
+			} else {
+				consoleArgs.push( param.value );
+			}
+		} );
+		console.log.apply( console, consoleArgs );
+	};
+
+	/**
 	 * Wrap the add and remove methods.
 	 *
 	 * @this {wp.customize.Values}
@@ -34,7 +58,7 @@ var CustomizerDevTools = ( function( api, $ ) {
 
 		_.each( originalMethods, function( method, methodName ) {
 			args.object[ methodName ] = function() {
-				var params, namespaceParts, namespace, id, item, consoleArgs = [];
+				var params, id, item, consoleParams = [];
 
 				// Remove a lot of noise for addition of initial values.
 				if ( ! component.ready && args.ignoreUntilReady ) {
@@ -44,26 +68,23 @@ var CustomizerDevTools = ( function( api, $ ) {
 				params = Array.prototype.slice.call( arguments );
 				id = params[0];
 				item = params[1];
-				namespaceParts = [ 'customizer', component.context, args.name, methodName ];
-				consoleArgs.push( {
-					'format': '[%s]',
-					'value': namespaceParts.join( '.' )
+				consoleParams.push( {
+					value: id,
+					format: '%o'
 				} );
-				consoleArgs.push( {
-					'format': '%s',
-					'value': id
-				} );
+
 				if ( 'add' === methodName ) {
-					consoleArgs.push( {
-						'format': '%O',
-						'value': item
+					consoleParams.push( {
+						value: item,
+						format: '%O'
 					} );
 				}
-				namespace = _.pluck( consoleArgs, 'format' ).join( ' ' );
-				console.log.apply(
-					console,
-					[ namespace ].concat( _.pluck( consoleArgs, 'value' ) )
-				);
+
+				component.log({
+					namespace: [ args.name, methodName ],
+					params: consoleParams
+				});
+
 				return method.apply( this, arguments );
 			};
 		} );
@@ -81,7 +102,7 @@ var CustomizerDevTools = ( function( api, $ ) {
 	component.wrapTriggerMethod = function wrapTriggerMethod( args ) {
 		var originalTrigger = args.object.trigger;
 		args.object.trigger = function trigger() { // eslint-disable-line complexity
-			var consoleArgs = [], id, params, namespaceParts = [ 'customizer', component.context ], namespace;
+			var consoleParams = [], id, params, namespaceParts = [];
 			if ( args.filter && ! args.filter.apply( this, arguments ) ) {
 				return originalTrigger.apply( this, arguments );
 			}
@@ -90,30 +111,24 @@ var CustomizerDevTools = ( function( api, $ ) {
 			}
 			namespaceParts.push( 'trigger' );
 
-			consoleArgs.push( {
-				'format': '[%s]',
-				'value': namespaceParts.join( '.' )
-			} );
-
 			params = Array.prototype.slice.call( arguments );
 			id = params[0];
 
-			consoleArgs.push( {
-				'format': '%s',
-				'value': id
+			consoleParams.push( {
+				value: id,
+				format: '%o'
 			} );
 			if ( params.length > 1 ) {
-				consoleArgs.push( {
-					'format': '%O',
-					'value': params.slice( 1 )
+				consoleParams.push( {
+					format: '%O',
+					value: params.slice( 1 )
 				} );
 			}
 
-			namespace = _.pluck( consoleArgs, 'format' ).join( ' ' );
-			console.log.apply(
-				console,
-				[ namespace ].concat( _.pluck( consoleArgs, 'value' ) )
-			);
+			component.log({
+				namespace: namespaceParts,
+				params: consoleParams
+			});
 
 			return originalTrigger.apply( this, arguments );
 		};
@@ -144,36 +159,33 @@ var CustomizerDevTools = ( function( api, $ ) {
 
 		_.each( originalMethods, function( methodParams, methodName ) {
 			args.object[ methodName ] = function() { // eslint-disable-line complexity
-				var params, namespaceParts, namespace, id, consoleArgs = [];
+				var params, namespaceParts, namespace, id, consoleParams = [];
 
 				params = Array.prototype.slice.call( arguments );
 				id = params[0];
-				namespaceParts = [ 'customizer', component.context, args.name ];
-				namespaceParts.push( methodParams.name || methodName );
-				consoleArgs.push( {
-					'format': '[%s]',
-					'value': namespaceParts.join( '.' )
-				} );
-				consoleArgs.push( {
-					'format': '%s',
-					'value': id
+				namespaceParts = [ args.name, methodParams.name || methodName ];
+
+				consoleParams.push( {
+					format: '%o',
+					value: id
 				} );
 				if ( 2 === params.length ) {
-					consoleArgs.push( {
-						'format': '%o',
+					consoleParams.push( {
+						'format': '( %o )',
 						'value': params[1]
 					} );
 				} else if ( params.length > 1 ) {
-					consoleArgs.push( {
-						'format': '%O',
+					consoleParams.push( {
+						'format': '( %O )',
 						'value': params.slice( 1 )
 					} );
 				}
-				namespace = _.pluck( consoleArgs, 'format' ).join( ' ' );
-				console.log.apply(
-					console,
-					[ namespace ].concat( _.pluck( consoleArgs, 'value' ) )
-				);
+
+				component.log({
+					namespace: namespaceParts,
+					params: consoleParams
+				});
+
 				return methodParams.method.apply( this, arguments );
 			};
 		} );
@@ -201,13 +213,16 @@ var CustomizerDevTools = ( function( api, $ ) {
 				} );
 			}
 
-			console.log(
-				'[customizer.%s.setting.change] %s\n- %s\n+ %s',
-				component.context,
-				setting.id,
-				JSON.stringify( oldValue ),
-				JSON.stringify( newValue )
-			);
+			component.log({
+				namespace: [ 'setting', 'change' ],
+				params: [
+					{
+						values: [ setting.id, JSON.stringify( oldValue ), JSON.stringify( newValue ) ],
+						format: '%o\n- %s\n+ %s'
+					}
+				]
+			});
+
 			return originalFireWith.call( setting.callbacks, object, args );
 		};
 	};

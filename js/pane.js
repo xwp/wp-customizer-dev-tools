@@ -59,7 +59,19 @@
 
 			value.callbacks.fireWith = function fireWith( object, args ) {
 				if ( args[1] !== args[0] ) {
-					console.log( '[customizer.%s.%s.%s] %s (%o → %o)', component.context, type, property, construct.id, args[1], args[0] );
+					component.log({
+						namespace: [ type, property ],
+						params: [
+							{
+								value: construct.id,
+								format: '%o'
+							},
+							{
+								values: [ args[1], args[0] ],
+								format: '(%o → %o)'
+							}
+						]
+					});
 				}
 				return originalFireWith.call( value.callbacks, object, args );
 			};
@@ -93,7 +105,20 @@
 		 */
 		state.add = function addState( id, stateValue ) {
 			if ( ! state.has( id ) ) {
-				console.log( '[customizer.%s.state.add]', component.context, id, stateValue.get() );
+
+				component.log({
+					namespace: [ 'state', 'add' ],
+					params: [
+						{
+							value: id,
+							format: '%o'
+						},
+						{
+							value: stateValue.get(),
+							format: '%o'
+						}
+					]
+				});
 				component.watchStateValue( id, stateValue );
 			}
 			originalAdd.call( this, id, stateValue );
@@ -114,7 +139,21 @@
 	component.watchStateValue = function watchStateValue( id, stateValue ) {
 		var originalFireWith = stateValue.callbacks.fireWith;
 		stateValue.callbacks.fireWith = function fireWith( object, args ) {
-			console.log( '[customizer.%s.state.change] %s (%o → %o)', component.context, id, args[1], args[0] );
+
+			component.log({
+				namespace: [ 'state', 'change' ],
+				params: [
+					{
+						value: id,
+						format: '%o'
+					},
+					{
+						values: [ args[1], args[0] ],
+						format: '(%o → %o)'
+					}
+				]
+			});
+
 			return originalFireWith.call( stateValue.callbacks, object, args );
 		};
 	};
