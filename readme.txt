@@ -20,3 +20,5 @@ Features:
 * Logs out dynamic addition and removal of panels, sections, controls, partials, and settings (after the `ready` event triggers).
 * The `wp.customize` object from the Customizer preview is made persistently available from the parent frame via `CustomizerDevTools.previewCustomize`. This reference is updated whenever the preview refreshes, so you no longer have to change the frame window context to access this object.
 * In the same way, the current Customizer preview `window` is exposed as `CustomizerDevTools.previewWindow`.  This is a shortcut for doing `wp.customize.previewer.targetWindow.get()`, and it has the added benefit of allowing the browser's dev tools to provide auto-completion.
+
+Make sure you also install the [Customizer Browser History](https://github.com/xwp/wp-customizer-browser-history) and [Customize Snapshots](https://github.com/xwp/wp-customize-snapshots) plugins so that you can reload the browser window and have the Customizer load with the same state as before you reloaded, including the persistence of the focused panel, section, control, the previewed URL, the scroll position in the preview, and which device is being previewed.
