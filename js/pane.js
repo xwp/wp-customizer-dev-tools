@@ -241,6 +241,11 @@
 		name: 'messenger.previewer'
 	});
 
+	component.wrapMessengerMethods({
+		object: api.PreviewFrame.prototype,
+		name: 'messenger.previewframe'
+	});
+
 	api.bind( 'add', component.addSettingChangeListener );
 	api.control.bind( 'add', component.addConstructStateChangeListener );
 	api.section.bind( 'add', component.addConstructStateChangeListener );
