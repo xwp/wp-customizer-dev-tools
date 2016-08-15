@@ -37,7 +37,7 @@
 	 * @param {wp.customize.Panel|wp.customize.Section|wp.customize.Control} construct Construct.
 	 * @returns {void}
 	 */
-	component.addConstructStateChangeListener = function addConstructStateChangeListener( construct ) {
+	component.addConstructStateChangeListener = function addConstructStateChangeListener( construct ) { // eslint-disable-line complexity
 		var type;
 		if ( construct.extended( api.Control ) ) {
 			type = 'control';
