@@ -143,7 +143,7 @@ var CustomizerDevTools = ( function( api, $ ) {
 		};
 
 		_.each( originalMethods, function( methodParams, methodName ) {
-			args.object[ methodName ] = function() {
+			args.object[ methodName ] = function() { // eslint-disable-line complexity
 				var params, namespaceParts, namespace, id, consoleArgs = [];
 
 				params = Array.prototype.slice.call( arguments );
@@ -158,7 +158,7 @@ var CustomizerDevTools = ( function( api, $ ) {
 					'format': '%s',
 					'value': id
 				} );
-				if ( params.length === 2 ) {
+				if ( 2 === params.length ) {
 					consoleArgs.push( {
 						'format': '%o',
 						'value': params[1]
