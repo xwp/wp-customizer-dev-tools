@@ -1,4 +1,4 @@
-/* global wp, console, CustomizerDevTools */
+/* global wp, console, CustomizerDevTools, JSON */
 ( function( component, api ) {
 	'use strict';
 
@@ -6,6 +6,55 @@
 		component.capturePreviewObjects();
 		component.watchState( api.state );
 	} );
+
+	/**
+	 * Start logging.
+	 *
+	 * @param {string|RegExp} [filterPattern] Filter pattern.
+	 * @returns {void}
+	 */
+	component.startLogging = function startLogging( filterPattern ) { // eslint-disable-line complexity
+		var filter = null, serializedLoggingFilterPatterns;
+		if ( filterPattern ) {
+			filter = filterPattern;
+		}
+
+		if ( 0 === component.loggingFilterPatterns.length ) {
+			console.info( 'Reload the customizer to get initial console logs. Logging in the customizer will continue in this browser session. You can stop logging via CustomizerDevTools.stopLogging()' );
+		}
+
+		if ( -1 === _.indexOf( component.loggingFilterPatterns, filter ) ) {
+			component.loggingFilterPatterns.push( filter );
+		}
+
+		serializedLoggingFilterPatterns = JSON.stringify( component.loggingFilterPatterns, function replacer( key, value ) {
+			if ( value instanceof RegExp ) {
+				return {
+					source: value.source,
+					flags: value.flags
+				};
+			} else {
+				return value;
+			}
+		} );
+
+		localStorage.setItem(
+			component.loggingPatternFiltersStorageKey,
+			serializedLoggingFilterPatterns
+		);
+
+		api.previewer.send( 'dev-tools-start-logging', serializedLoggingFilterPatterns );
+	};
+
+	/**
+	 * Stop logging.
+	 *
+	 * @returns {void}
+	 */
+	component.stopLogging = function stopLogging() {
+		component.loggingFilterPatterns = [];
+		api.previewer.send( 'dev-tools-stop-logging', true );
+	};
 
 	/**
 	 * Expose Customizer preview window and wp.customize object persistently, even as iframe window is destroyed with each refresh.

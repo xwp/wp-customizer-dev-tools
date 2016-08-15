@@ -1,18 +1,65 @@
 /* global wp, jQuery, console, JSON */
 /* exported CustomizerDevTools */
-/* eslint no-magic-numbers: [ "error", { "ignore": [0,1,2] } ] */
+/* eslint no-magic-numbers: [ "error", { "ignore": [-1,0,1,2] } ] */
 
 var CustomizerDevTools = ( function( api, $ ) {
 	'use strict';
 
 	var component = {
 		ready: false,
-		context: 'unknown'
+		context: 'unknown',
+		loggingPatternFiltersStorageKey: 'customizer-dev-tools-logging',
+		loggingFilterPatterns: []
 	};
 
 	api.bind( 'ready', function() {
 		component.ready = true;
 	} );
+
+	/**
+	 * Init logging.
+	 *
+	 * @returns {void}
+	 */
+	component.initLogging = function initLogging() {
+		try {
+			component.loggingFilterPatterns = component.parseSerializedLoggingFilterPatterns(
+				sessionStorage.getItem( component.loggingPatternFiltersStorageKey )
+			);
+		} catch ( e ) {
+			sessionStorage.removeItem( component.loggingPatternFiltersStorageKey );
+		}
+	};
+
+	/**
+	 * Parse serialized logging filter patterns.
+	 *
+	 * @param {string} serializedLoggingFilterPatterns JSON.
+	 * @returns {Array} Patterns.
+	 */
+	component.parseSerializedLoggingFilterPatterns = function parseSerializedLoggingFilterPatterns( serializedLoggingFilterPatterns ) {
+		var patterns;
+		if ( ! serializedLoggingFilterPatterns ) {
+			return [];
+		}
+		patterns = JSON.parse( serializedLoggingFilterPatterns, function reviver( key, value ) { // eslint-disable-line complexity
+			if ( _.isObject( value ) && ! _.isArray( value ) ) {
+				if ( _.isUndefined( value.source ) ) {
+					throw new Error( 'Missing source' );
+				}
+				if ( _.isUndefined( value.flags ) ) {
+					throw new Error( 'Missing flags' );
+				}
+				return new RegExp( value.source, value.flags );
+			} else {
+				return value;
+			}
+		} );
+		if ( ! _.isArray( patterns ) ) {
+			throw new Error( 'Expected array' );
+		}
+		return patterns;
+	};
 
 	/**
 	 * Log.
@@ -22,8 +69,19 @@ var CustomizerDevTools = ( function( api, $ ) {
 	 * @param {Array} args.params Params.
 	 * @return {void}
 	 */
-	component.log = function log( args ) {
-		var namespace, consoleArgs;
+	component.log = function log( args ) { // eslint-disable-line complexity
+		var namespace, consoleArgs, filterMatch = false, haystack = '';
+		if ( ! _.isArray( args.namespace ) ) {
+			throw new Error( 'Missing args.namespace array' );
+		}
+		if ( ! _.isArray( args.params ) ) {
+			throw new Error( 'Missing args.params array' );
+		}
+
+		if ( 0 === component.loggingFilterPatterns.length ) {
+			return;
+		}
+
 		namespace = [ 'customizer', component.context ].concat( args.namespace );
 		consoleArgs = [];
 		consoleArgs.push( '[' + namespace.join( '.' ) + ']' );
@@ -35,7 +93,29 @@ var CustomizerDevTools = ( function( api, $ ) {
 				consoleArgs.push( param.value );
 			}
 		} );
-		console.log.apply( console, consoleArgs );
+
+		if ( 0 === component.loggingFilterPatterns.length ) {
+			return;
+		}
+
+		haystack = _.filter( consoleArgs, function( item ) {
+			return 'string' === typeof item;
+		} ).join( ' ' );
+
+		_.find( component.loggingFilterPatterns, function( filterPattern ) { // eslint-disable-line complexity
+			if ( null === filterPattern ) {
+				filterMatch = true;
+			} else if ( 'string' === typeof filterPattern ) {
+				filterMatch = -1 !== haystack.indexOf( filterPattern );
+			} else if ( filterPattern instanceof RegExp ) {
+				filterMatch = filterPattern.test( haystack );
+			}
+			return filterMatch;
+		} );
+
+		if ( filterMatch ) {
+			console.log.apply( console, consoleArgs );
+		}
 	};
 
 	/**
@@ -226,6 +306,8 @@ var CustomizerDevTools = ( function( api, $ ) {
 			return originalFireWith.call( setting.callbacks, object, args );
 		};
 	};
+
+	component.initLogging();
 
 	return component;
 

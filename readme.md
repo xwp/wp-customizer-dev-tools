@@ -16,6 +16,7 @@ Tools for facilitating JavaScript development in the customizer.
 
 Features:
 
+* Start logging of customizer events via running `CustomizerDevTools.startLogging()` from your browser console, and stop via `CustomizerDevTools.stopLogging()`. In the former, you can filter what is logged out by passing a string or regular expression (`RegExp` object) to match against the given log.
 * Logs out all events triggered on `wp.customize`.
 * Logs out additions and changes to to `wp.customize.state`.
 * Logs changes to the `active` and `expanded` states for panels, sections, and controls.
