@@ -1,6 +1,6 @@
 /* global wp, jQuery, console, JSON */
 /* exported CustomizerDevTools */
-/* eslint no-magic-numbers: [ "error", { "ignore": [0,1] } ] */
+/* eslint no-magic-numbers: [ "error", { "ignore": [0,1,2] } ] */
 
 var CustomizerDevTools = ( function( api, $ ) {
 	'use strict';
@@ -158,7 +158,12 @@ var CustomizerDevTools = ( function( api, $ ) {
 					'format': '%s',
 					'value': id
 				} );
-				if ( params.length > 1 ) {
+				if ( params.length === 2 ) {
+					consoleArgs.push( {
+						'format': '%o',
+						'value': params[1]
+					} );
+				} else if ( params.length > 1 ) {
 					consoleArgs.push( {
 						'format': '%O',
 						'value': params.slice( 1 )
