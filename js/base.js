@@ -159,7 +159,7 @@ var CustomizerDevTools = ( function( api, $ ) {
 
 		_.each( originalMethods, function( methodParams, methodName ) {
 			args.object[ methodName ] = function() { // eslint-disable-line complexity
-				var params, namespaceParts, namespace, id, consoleParams = [];
+				var params, namespaceParts, id, consoleParams = [];
 
 				params = Array.prototype.slice.call( arguments );
 				id = params[0];
