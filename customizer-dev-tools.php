@@ -29,15 +29,6 @@
  * @package CustomizerDevTools
  */
 
-// @todo Log customizer events (we can hijack the wp.customize.Events interface).
-// @todo Log addition of new panels, sections, controls, settings.
-// @todo Log changes to settings.
-// @todo Log changes to UI constructs (expanded, active).
-// @todo Log changes to previewedDevice
-// @todo Log changes to previewUrl
-// @todo Log changes to models in preview as well as pane (especially selective refresh).
-// @todo Only enable logger if WP_DEBUG is on? Allow customizing which messages get console-logged out?
-
 namespace CustomizerDevTools;
 
 require_once __DIR__ . '/php/class-plugin.php';
