@@ -68,15 +68,20 @@
 	/**
 	 * Watch state value.
 	 *
+	 * The fireWith method is wrapped so that the event is guaranteed to log before
+	 * any of the registered callbacks.
+	 *
 	 * @param {string} id State ID.
 	 * @param {wp.customize.Value} stateValue State value.
-	 * @param {function} stateValue.bind Change watch adder.
+	 * @param {jQuery.Callbacks} stateValue.callbacks Callbacks.
 	 * @returns {void}
 	 */
 	component.watchStateValue = function watchStateValue( id, stateValue ) {
-		stateValue.bind( function( newState, oldState ) {
-			console.log( '[customizer.%s.state.change]', component.context, id, oldState, '=>', newState );
-		} );
+		var originalFireWith = stateValue.callbacks.fireWith;
+		stateValue.callbacks.fireWith = function fireWith( object, args ) {
+			console.log( '[customizer.%s.state.change]', component.context, id, args[1], '=>', args[0] );
+			return originalFireWith.call( stateValue.callbacks, object, args );
+		};
 	};
 
 	component.wrapValuesMethods({

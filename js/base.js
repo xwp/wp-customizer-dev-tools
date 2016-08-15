@@ -1,5 +1,6 @@
-/* global wp, jQuery, console */
+/* global wp, jQuery, console, JSON */
 /* exported CustomizerDevTools */
+/* eslint no-magic-numbers: [ "error", { "ignore": [0,1] } ] */
 
 var CustomizerDevTools = ( function( api, $ ) {
 	'use strict';
@@ -23,10 +24,11 @@ var CustomizerDevTools = ( function( api, $ ) {
 	 * Wrap the add and remove methods.
 	 *
 	 * @this {wp.customize.Values}
-	 * @param {object} args
-	 * @param {wp.customize.Values} args.object
-	 * @param {string} args.name
-	 * @param {boolean} args.ignoreUntilReady
+	 * @param {object} args Args.
+	 * @param {wp.customize.Values} args.object Object.
+	 * @param {string} args.name Name.
+	 * @param {boolean} args.ignoreUntilReady Ignore until ready.
+	 * @returns {void}
 	 */
 	component.wrapValuesMethods = function wrapValuesObjectMethod( args ) {
 		var originalMethods;
@@ -38,7 +40,7 @@ var CustomizerDevTools = ( function( api, $ ) {
 
 		_.each( originalMethods, function( method, methodName ) {
 			args.object[ methodName ] = function() {
-				var params, namespace, id, item, consoleArgs = [];
+				var params, namespaceParts, namespace, id, item, consoleArgs = [];
 
 				// Remove a lot of noise for addition of initial values.
 				if ( ! component.ready && args.ignoreUntilReady ) {
@@ -48,10 +50,10 @@ var CustomizerDevTools = ( function( api, $ ) {
 				params = Array.prototype.slice.call( arguments );
 				id = params[0];
 				item = params[1];
-				namespace = [ 'customizer', component.context, args.name, methodName ];
+				namespaceParts = [ 'customizer', component.context, args.name, methodName ];
 				consoleArgs.push( {
 					'format': '[%s]',
-					'value': namespace.join( '.' )
+					'value': namespaceParts.join( '.' )
 				} );
 				consoleArgs.push( {
 					'format': '%s',
@@ -63,13 +65,10 @@ var CustomizerDevTools = ( function( api, $ ) {
 						'value': item
 					} );
 				}
+				namespace = _.pluck( consoleArgs, 'format' ).join( ' ' );
 				console.log.apply(
 					console,
-					[
-						_.pluck( consoleArgs, 'format' ).join( ' ' )
-					].concat(
-						_.pluck( consoleArgs, 'value' )
-					)
+					[ namespace ].concat( _.pluck( consoleArgs, 'value' ) )
 				);
 				return method.apply( this, arguments );
 			};
@@ -79,26 +78,27 @@ var CustomizerDevTools = ( function( api, $ ) {
 	/**
 	 * Wrap trigger method.
 	 *
-	 * @param {object} args
-	 * @param {object} args.object
-	 * @param {string} [args.name]
-	 * @param {function} [args.filter]
+	 * @param {object} args Args.
+	 * @param {object} args.object Object.
+	 * @param {string} [args.name] Name.
+	 * @param {function} [args.filter] Filter.
+	 * @returns {void}
 	 */
 	component.wrapTriggerMethod = function wrapTriggerMethod( args ) {
 		var originalTrigger = args.object.trigger;
-		args.object.trigger = function trigger() {
-			var consoleArgs = [], id, params, namespace = [ 'customizer', component.context ];
+		args.object.trigger = function trigger() { // eslint-disable-line complexity
+			var consoleArgs = [], id, params, namespaceParts = [ 'customizer', component.context ], namespace;
 			if ( args.filter && ! args.filter.apply( this, arguments ) ) {
 				return originalTrigger.apply( this, arguments );
 			}
 			if ( args.name ) {
-				namespace.push( args.name );
+				namespaceParts.push( args.name );
 			}
-			namespace.push( 'trigger' );
+			namespaceParts.push( 'trigger' );
 
 			consoleArgs.push( {
 				'format': '[%s]',
-				'value': namespace.join( '.' )
+				'value': namespaceParts.join( '.' )
 			} );
 
 			params = Array.prototype.slice.call( arguments );
@@ -115,13 +115,10 @@ var CustomizerDevTools = ( function( api, $ ) {
 				} );
 			}
 
+			namespace = _.pluck( consoleArgs, 'format' ).join( ' ' );
 			console.log.apply(
 				console,
-				[
-					_.pluck( consoleArgs, 'format' ).join( ' ' )
-				].concat(
-					_.pluck( consoleArgs, 'value' )
-				)
+				[ namespace ].concat( _.pluck( consoleArgs, 'value' ) )
 			);
 
 			return originalTrigger.apply( this, arguments );
@@ -130,10 +127,12 @@ var CustomizerDevTools = ( function( api, $ ) {
 
 	/**
 	 * Wrap messenger methods.
-	 * @param {object} args
-	 * @param {wp.customize.Messenger} args.object
-	 * @param {string} args.name
-	 * @param {function} [args.filter]
+	 *
+	 * @param {object} args Args.
+	 * @param {wp.customize.Messenger} args.object Object.
+	 * @param {string} args.name Name.
+	 * @param {function} [args.filter] Filter.
+	 * @returns {void}
 	 */
 	component.wrapMessengerMethods = function wrapMessengerMethods( args ) {
 
@@ -151,15 +150,15 @@ var CustomizerDevTools = ( function( api, $ ) {
 
 		_.each( originalMethods, function( methodParams, methodName ) {
 			args.object[ methodName ] = function() {
-				var params, namespace, id, item, consoleArgs = [];
+				var params, namespaceParts, namespace, id, consoleArgs = [];
 
 				params = Array.prototype.slice.call( arguments );
 				id = params[0];
-				namespace = [ 'customizer', component.context, args.name ];
-				namespace.push( methodParams.name || methodName );
+				namespaceParts = [ 'customizer', component.context, args.name ];
+				namespaceParts.push( methodParams.name || methodName );
 				consoleArgs.push( {
 					'format': '[%s]',
-					'value': namespace.join( '.' )
+					'value': namespaceParts.join( '.' )
 				} );
 				consoleArgs.push( {
 					'format': '%s',
@@ -171,13 +170,10 @@ var CustomizerDevTools = ( function( api, $ ) {
 						'value': params.slice( 1 )
 					} );
 				}
+				namespace = _.pluck( consoleArgs, 'format' ).join( ' ' );
 				console.log.apply(
 					console,
-					[
-						_.pluck( consoleArgs, 'format' ).join( ' ' )
-					].concat(
-						_.pluck( consoleArgs, 'value' )
-					)
+					[ namespace ].concat( _.pluck( consoleArgs, 'value' ) )
 				);
 				return methodParams.method.apply( this, arguments );
 			};
@@ -189,15 +185,19 @@ var CustomizerDevTools = ( function( api, $ ) {
 	 *
 	 * @todo Be wary of comparing large values. Show smaller contextual diffs.
 	 * @param {wp.customize.Setting|wp.customize.Value} setting Setting.
+	 * @returns {void}
 	 */
 	component.addSettingChangeListener = function addSettingChangeListener( setting ) {
-		setting.bind( function onSettingChange( newDataArg, oldDataArg ) {
-			var newData = _.clone( newDataArg ), oldData = _.clone( oldDataArg );
-			if ( $.isPlainObject( newData ) && $.isPlainObject( oldData ) ) {
-				_.each( _.keys( newData ), function( key ) {
-					if ( _.isEqual( newData[ key ], oldData[ key ] ) ) {
-						delete newData[ key ];
-						delete oldData[ key ];
+
+		var originalFireWith = setting.callbacks.fireWith;
+		setting.callbacks.fireWith = function fireWith( object, args ) {
+			var newValue = _.clone( args[0] ), oldValue = _.clone( args[1] );
+
+			if ( $.isPlainObject( newValue ) && $.isPlainObject( oldValue ) ) {
+				_.each( _.keys( newValue ), function( key ) {
+					if ( _.isEqual( newValue[ key ], oldValue[ key ] ) ) {
+						delete newValue[ key ];
+						delete oldValue[ key ];
 					}
 				} );
 			}
@@ -206,10 +206,11 @@ var CustomizerDevTools = ( function( api, $ ) {
 				'[customizer.%s.setting.change] %s\n- %s\n+ %s',
 				component.context,
 				setting.id,
-				JSON.stringify( oldData ),
-				JSON.stringify( newData )
+				JSON.stringify( oldValue ),
+				JSON.stringify( newValue )
 			);
-		} );
+			return originalFireWith.call( setting.callbacks, object, args );
+		};
 	};
 
 	return component;
