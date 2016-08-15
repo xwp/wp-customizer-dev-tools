@@ -32,6 +32,41 @@
 	};
 
 	/**
+	 * Add construct state change listener.
+	 *
+	 * @param {wp.customize.Panel|wp.customize.Section|wp.customize.Control} construct Construct.
+	 * @returns {void}
+	 */
+	component.addConstructStateChangeListener = function addConstructStateChangeListener( construct ) {
+		var type;
+		if ( construct.extended( api.Control ) ) {
+			type = 'control';
+		} else if ( construct.extended( api.Section ) ) {
+			type = 'section';
+		} else if ( construct.extended( api.Panel ) ) {
+			type = 'panel';
+		} else {
+			type = 'unknown';
+		}
+
+		_.each( [ 'active', 'expanded' ], function( property ) {
+			var originalFireWith, value;
+			if ( ! construct[ property ] ) {
+				return;
+			}
+			value = construct[ property ];
+			originalFireWith = value.callbacks.fireWith;
+
+			value.callbacks.fireWith = function fireWith( object, args ) {
+				if ( args[1] !== args[0] ) {
+					console.log( '[customizer.%s.%s.%s] %s (%o → %o)', component.context, type, property, construct.id, args[1], args[0] );
+				}
+				return originalFireWith.call( value.callbacks, object, args );
+			};
+		} );
+	};
+
+	/**
 	 * Watch state.
 	 *
 	 * @param {wp.customize.Values} state State.
@@ -79,7 +114,7 @@
 	component.watchStateValue = function watchStateValue( id, stateValue ) {
 		var originalFireWith = stateValue.callbacks.fireWith;
 		stateValue.callbacks.fireWith = function fireWith( object, args ) {
-			console.log( '[customizer.%s.state.change]', component.context, id, args[1], '=>', args[0] );
+			console.log( '[customizer.%s.state.change] %s (%o → %o)', component.context, id, args[1], args[0] );
 			return originalFireWith.call( stateValue.callbacks, object, args );
 		};
 	};
@@ -119,5 +154,8 @@
 	});
 
 	api.bind( 'add', component.addSettingChangeListener );
+	api.control.bind( 'add', component.addConstructStateChangeListener );
+	api.section.bind( 'add', component.addConstructStateChangeListener );
+	api.panel.bind( 'add', component.addConstructStateChangeListener );
 
 } )( CustomizerDevTools, wp.customize );

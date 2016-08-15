@@ -5,12 +5,6 @@
 var CustomizerDevTools = ( function( api, $ ) {
 	'use strict';
 
-	// @todo DONE. Wrap the Values.add and Values.remove methods for panels, sections, controls, settings, partials.
-	// @todo DONE. Wrap the send and receive (trigger) methods on Previewer and Preview.
-	// @todo DONE. Wrap the trigger method on wp.customize.
-	// @todo Wrap the active and expanded states on panels, sections, and controls.
-	// @todo Wrap the set method on settings, or add change event.
-
 	var component = {
 		ready: false,
 		context: 'unknown'
