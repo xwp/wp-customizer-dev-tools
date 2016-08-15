@@ -36,6 +36,8 @@ Features:
 
 Make sure you also install the [Customizer Browser History](https://github.com/xwp/wp-customizer-browser-history) and [Customize Snapshots](https://github.com/xwp/wp-customize-snapshots) plugins so that you can reload the browser window and have the Customizer load with the same state as before you reloaded, including the persistence of the focused panel, section, control, the previewed URL, the scroll position in the preview, and which device is being previewed.
 
+Requires PHP≥5.3.
+
 == Screenshots ==
 
 1. Messages sent/received and events triggered during Customizer load.
