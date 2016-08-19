@@ -10,7 +10,7 @@ Tools for facilitating JavaScript development in the customizer.
 **Stable tag:** 0.7.0  
 **License:** [GPLv2 or later](http://www.gnu.org/licenses/gpl-2.0.html)  
 
-[![Build Status](https://travis-ci.org/xwp/wp-customizer-dev-tools.svg?branch=master)](https://travis-ci.org/xwp/wp-customizer-dev-tools) 
+[![Build Status](https://travis-ci.org/xwp/wp-customizer-dev-tools.svg?branch=master)](https://travis-ci.org/xwp/wp-customizer-dev-tools) [![Built with Grunt](https://cdn.gruntjs.com/builtwith.svg)](http://gruntjs.com) 
 
 ## Description ##
 
