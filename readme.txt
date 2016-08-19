@@ -3,7 +3,7 @@ Contributors:      xwp, westonruter
 Tags:              customizer, customize, dev-tools, debug, debugging, developer, development
 Requires at least: 4.5
 Tested up to:      4.6
-Stable tag:        0.7.0
+Stable tag:        0.1.0
 License:           GPLv2 or later
 License URI:       http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -46,3 +46,9 @@ Requires PHP≥5.3.
 4. Expanding the Site Identity section and then navigating to edit a widget.
 5. Changes to `wp.customize.state` when saving the customizer changes.
 6. State changes, messages, and events related to saving.
+
+== Changelog ==
+
+= 0.1.0 [2016-08-18] =
+
+Initial release
