@@ -28,6 +28,8 @@
 
 	// @todo Add inspection of selective refresh events.
 
+	api.bind( 'add', component.addSettingChangeListener );
+
 	api.bind( 'preview-ready', function() {
 		api.preview.bind( 'dev-tools-start-logging', function startLoggingPreview( serializedLoggingFilterPatterns ) {
 			var loggingFilterPatterns;
