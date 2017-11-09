@@ -1,9 +1,9 @@
 === Customizer Dev Tools ===
 Contributors:      xwp, westonruter
 Tags:              customizer, customize, dev-tools, debug, debugging, developer, development
-Requires at least: 4.5
-Tested up to:      4.6
-Stable tag:        0.1.0
+Requires at least: 4.7
+Tested up to:      4.9
+Stable tag:        0.1.1
 License:           GPLv2 or later
 License URI:       http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,10 @@ Requires PHP≥5.3.
 6. State changes, messages, and events related to saving.
 
 == Changelog ==
+
+= 0.1.1 [2017-11-14] =
+
+Tested up to 4.9.
 
 = 0.1.0 [2016-08-18] =
 

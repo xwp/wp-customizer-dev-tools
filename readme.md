@@ -5,9 +5,9 @@ Tools for facilitating JavaScript development in the customizer.
 
 **Contributors:** [xwp](https://profiles.wordpress.org/xwp), [westonruter](https://profiles.wordpress.org/westonruter)  
 **Tags:** [customizer](https://wordpress.org/plugins/tags/customizer), [customize](https://wordpress.org/plugins/tags/customize), [dev-tools](https://wordpress.org/plugins/tags/dev-tools), [debug](https://wordpress.org/plugins/tags/debug), [debugging](https://wordpress.org/plugins/tags/debugging), [developer](https://wordpress.org/plugins/tags/developer), [development](https://wordpress.org/plugins/tags/development)  
-**Requires at least:** 4.5  
-**Tested up to:** 4.6  
-**Stable tag:** 0.1.0  
+**Requires at least:** 4.7  
+**Tested up to:** 4.9  
+**Stable tag:** 0.1.1  
 **License:** [GPLv2 or later](http://www.gnu.org/licenses/gpl-2.0.html)  
 
 [![Build Status](https://travis-ci.org/xwp/wp-customizer-dev-tools.svg?branch=master)](https://travis-ci.org/xwp/wp-customizer-dev-tools) [![Built with Grunt](https://cdn.gruntjs.com/builtwith.svg)](http://gruntjs.com) 
@@ -68,6 +68,9 @@ Requires PHP≥5.3.
 ![State changes, messages, and events related to saving.](wp-assets/screenshot-6.png)
 
 ## Changelog ##
+
+### 0.1.1 [2017-11-14] ###
+Tested up to 4.9.
 
 ### 0.1.0 [2016-08-18] ###
 Initial release

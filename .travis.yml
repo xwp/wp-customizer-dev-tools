@@ -1,19 +1,20 @@
 sudo: false
+dist: precise
 
 language:
     - php
     - node_js
 
 php:
-    - 5.3
-    - 7.0
+    - 5.6
+    - 7.1
 
 env:
     - WP_VERSION=trunk WP_MULTISITE=0
     - WP_VERSION=trunk WP_MULTISITE=1
 
 install:
-    - nvm install 4 && nvm use 4
+    - nvm install 6 && nvm use 6
     - export DEV_LIB_PATH=dev-lib
     - if [ ! -e "$DEV_LIB_PATH" ] && [ -L .travis.yml ]; then export DEV_LIB_PATH=$( dirname $( readlink .travis.yml ) ); fi
     - if [ ! -e "$DEV_LIB_PATH" ]; then git clone https://github.com/xwp/wp-dev-lib.git $DEV_LIB_PATH; fi

@@ -4,7 +4,7 @@
  * Description: Log out the console the changes to settings in the Customizer. Useful for developers and debugging.
  * Author: Weston Ruter, XWP
  * Plugin URL: https://gist.github.com/westonruter/1016332b18ee7946dec3
- * Version: 0.1.0
+ * Version: 0.1.1
  * Author: XWP
  * Author URI: https://xwp.co/
  * License: GPLv2+
