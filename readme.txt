@@ -51,7 +51,8 @@ Requires PHP≥5.3.
 
 = 0.1.1 [2017-11-14] =
 
-Tested up to 4.9.
+* Add setting change listener for settings in preview.
+* Tested up to 4.9.
 
 = 0.1.0 [2016-08-18] =
 
